@@ -1,0 +1,125 @@
+@prefix tcg:    <https://tcg-schema.org/core#> .
+@prefix l5r:    <https://tcg-schema.org/l5r#> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+##########################
+# GAME
+##########################
+
+l5r:LegendOfTheFiveRingsLCG a tcg:CardGame ;
+  schema:name "Legend of the Five Rings: The Card Game" ;
+  schema:identifier "l5r-lcg" .
+
+##########################
+# TURN STRUCTURE (5 phases)
+##########################
+
+l5r:Round a tcg:TurnStructure ;
+  schema:name "L5R Round Structure" .
+
+l5r:LegendOfTheFiveRingsLCG tcg:hasTurnStructure l5r:Round .
+
+l5r:DynastyPhase a tcg:TurnPhase ;
+  tcg:orderIndex 0 ;
+  tcg:partSummary "Reveal province cards, collect fate from stronghold/provinces, purchase dynasty cards." .
+
+l5r:DrawPhase a tcg:TurnPhase ;
+  tcg:orderIndex 1 ;
+  tcg:partSummary "Set honor dials (bid), draw cards, transfer honor based on bid difference." .
+
+l5r:ConflictPhase a tcg:TurnPhase ;
+  tcg:orderIndex 2 ;
+  tcg:partSummary "Declare conflicts, commit characters, resolve ring effects and break provinces." .
+
+l5r:FatePhase a tcg:TurnPhase ;
+  tcg:orderIndex 3 ;
+  tcg:partSummary "Remove fate from characters and discard those with no fate (unless otherwise stated)." .
+
+l5r:RegroupPhase a tcg:TurnPhase ;
+  tcg:orderIndex 4 ;
+  tcg:partSummary "Ready bowed cards, reset conflict state, refill provinces in preparation for next round." .
+
+l5r:Round tcg:turnPart
+  l5r:DynastyPhase, l5r:DrawPhase, l5r:ConflictPhase, l5r:FatePhase, l5r:RegroupPhase .
+
+# Source anchoring as CreativeWork nodes (optional but recommended)
+l5r:LearnToPlay a schema:CreativeWork ;
+  schema:name "L5R LCG Learn to Play" .
+
+l5r:DynastyPhase tcg:rulesReference l5r:LearnToPlay .
+l5r:DrawPhase tcg:rulesReference l5r:LearnToPlay .
+l5r:ConflictPhase tcg:rulesReference l5r:LearnToPlay .
+l5r:FatePhase tcg:rulesReference l5r:LearnToPlay .
+l5r:RegroupPhase tcg:rulesReference l5r:LearnToPlay .
+
+##########################
+# END CONDITIONS
+##########################
+
+l5r:HonorWin a tcg:WinCondition ;
+  tcg:conditionKind [ a schema:DefinedTerm ; schema:name "honorThreshold" ] ;
+  tcg:thresholdValue "25"^^xsd:decimal ;
+  tcg:checkTiming [ a schema:DefinedTerm ; schema:name "continuous" ] ;
+  tcg:conditionSummary "A player wins if they reach 25 honor." .
+
+l5r:HonorZeroLose a tcg:LoseCondition ;
+  tcg:conditionKind [ a schema:DefinedTerm ; schema:name "honorZero" ] ;
+  tcg:thresholdValue "0"^^xsd:decimal ;
+  tcg:checkTiming [ a schema:DefinedTerm ; schema:name "continuous" ] ;
+  tcg:conditionSummary "A player loses if they have 0 honor." .
+
+l5r:StrongholdBrokenLose a tcg:LoseCondition ;
+  tcg:conditionKind [ a schema:DefinedTerm ; schema:name "strongholdProvinceBroken" ] ;
+  tcg:checkTiming [ a schema:DefinedTerm ; schema:name "specialWindow" ] ;
+  tcg:conditionSummary "A player loses if their stronghold province is broken." .
+
+l5r:LegendOfTheFiveRingsLCG tcg:hasEndCondition
+  l5r:HonorWin, l5r:HonorZeroLose, l5r:StrongholdBrokenLose .
+
+##########################
+# RESOURCES: FATE + HONOR (as score-like resource)
+##########################
+
+l5r:FateSystem a tcg:ResourceSystem ;
+  schema:name "Fate" ;
+  tcg:inGame l5r:LegendOfTheFiveRingsLCG .
+
+l5r:Fate a tcg:ResourceType ;
+  schema:name "Fate" ;
+  tcg:inGame l5r:LegendOfTheFiveRingsLCG .
+
+l5r:LegendOfTheFiveRingsLCG tcg:hasResourceSystem l5r:FateSystem .
+
+# Honor as track (you may also model it as a resource/score term)
+l5r:Honor a schema:DefinedTerm ; schema:name "Honor" .
+
+##########################
+# DECK ROLES (Dynasty vs Conflict)
+##########################
+
+l5r:DeckRole a rdfs:Class ; rdfs:subClassOf schema:DefinedTerm .
+l5r:DynastyDeckRole a l5r:DeckRole ; schema:name "dynastyDeck" .
+l5r:ConflictDeckRole a l5r:DeckRole ; schema:name "conflictDeck" .
+
+l5r:deckRole a rdf:Property ;
+  rdfs:domain tcg:Deck ;
+  rdfs:range l5r:DeckRole .
+
+##########################
+# CARD TYPES (minimal starter)
+##########################
+
+l5r:CardTypes a schema:DefinedTermSet ; schema:name "L5R Card Types" .
+
+l5r:Character a tcg:CardType ; schema:name "Character" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Attachment a tcg:CardType ; schema:name "Attachment" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Event a tcg:CardType ; schema:name "Event" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Holding a tcg:CardType ; schema:name "Holding" ; schema:inDefinedTermSet l5r:CardTypes .
+
+l5r:Province a tcg:CardType ; schema:name "Province" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Stronghold a tcg:CardType ; schema:name "Stronghold" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Role a tcg:CardType ; schema:name "Role" ; schema:inDefinedTermSet l5r:CardTypes .
+l5r:Ring a tcg:CardType ; schema:name "Ring" ; schema:inDefinedTermSet l5r:CardTypes .
